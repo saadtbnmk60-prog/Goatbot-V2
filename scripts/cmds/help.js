@@ -4,7 +4,7 @@ module.exports = {
 	config: {
 		name: "help",
 		aliases: ["menu", "commands"],
-		version: "5.1",
+		version: "5.4",
 		author: "NeoKEX",
 		shortDescription: "Show commands",
 		longDescription: "Send a random help video and show commands when replied.",
@@ -15,6 +15,10 @@ module.exports = {
 	onStart: async function ({ message, args, prefix }) {
 		const allCommands = global.GoatBot.commands;
 		const categories = {};
+
+		// ==========================
+		// تنظيف أسماء التصنيفات
+		// ==========================
 
 		const cleanCategoryName = (text) => {
 			if (!text) return "others";
@@ -27,30 +31,40 @@ module.exports = {
 				.toLowerCase();
 		};
 
+		// ==========================
 		// جمع الأوامر حسب التصنيف
+		// ==========================
+
 		for (const [name, cmd] of allCommands) {
 			const cat = cleanCategoryName(cmd.config.category);
 
-			if (!categories[cat])
+			if (!categories[cat]) {
 				categories[cat] = [];
+			}
 
 			categories[cat].push(cmd.config.name);
 		}
 
+		// ==========================
 		// معلومات أمر معين
+		// ==========================
+
 		if (args[0]) {
 			const query = args[0].toLowerCase();
 
 			const cmd =
 				allCommands.get(query) ||
 				[...allCommands.values()].find((c) =>
-					(c.config.aliases || []).includes(query)
+					(c.config.aliases || []).some(
+						(alias) => alias.toLowerCase() === query
+					)
 				);
 
-			if (!cmd)
+			if (!cmd) {
 				return message.reply(
 					`❌ Command "${query}" not found.`
 				);
+			}
 
 			const {
 				name,
@@ -83,63 +97,198 @@ module.exports = {
 					: 0;
 
 			return message.reply(
-				`☠️ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ☠️\n\n` +
-				`➥ Name: ${name}\n` +
-				`➥ Category: ${category || "Uncategorized"}\n` +
-				`➥ Description: ${desc}\n` +
-				`➥ Aliases: ${aliases?.length ? aliases.join(", ") : "None"}\n` +
-				`➥ Usage: ${usage}\n` +
-				`➥ Permission: ${requiredRole}\n` +
-				`➥ Author: ${author}\n` +
-				`➥ Version: ${version}`
+				`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
+				`      𓆩 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 𓆪\n` +
+				`       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ✦\n` +
+				`╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+
+				`✦ 𝗡𝗮𝗺𝗲 : ${name}\n` +
+				`✦ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆 : ${category || "Uncategorized"}\n` +
+				`✦ 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻 : ${desc}\n` +
+				`✦ 𝗔𝗹𝗶𝗮𝘀𝗲𝘀 : ${
+					aliases?.length
+						? aliases.join(", ")
+						: "None"
+				}\n` +
+				`✦ 𝗨𝘀𝗮𝗴𝗲 : ${usage}\n` +
+				`✦ 𝗣𝗲𝗿𝗺𝗶𝘀𝘀𝗶𝗼𝗻 : ${requiredRole}\n` +
+				`✦ 𝗔𝘂𝘁𝗵𝗼𝗿 : ${author}\n` +
+				`✦ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻 : ${version}\n\n` +
+
+				`╰━━━━━━━━━━━━━━━━━━━━━━╯`
 			);
 		}
 
-		// إنشاء قائمة الأوامر
-		const formatCommands = (cmds) =>
-			cmds.sort().map((cmd) => `× ${cmd}`);
+		// ==========================
+		// إيموجي كل Category
+		// ==========================
+
+		const categoryEmoji = {
+			ai: "🤖",
+			"ai-image": "🎨",
+			fun: "🎮",
+			game: "🎲",
+			economy: "💰",
+			media: "🎬",
+			image: "🖼️",
+			tools: "🛠️",
+			utility: "🔧",
+			info: "ℹ️",
+			system: "⚙️",
+			admin: "👑",
+			owner: "☠️",
+			config: "⚙️",
+			group: "👥",
+			rank: "🏆",
+			boxchat: "💬",
+			"18+": "🔞",
+			others: "📦"
+		};
+
+		// ==========================
+		// تنسيق الأوامر
+		// ==========================
+
+		const formatCommands = (cmds) => {
+			return cmds
+				.sort((a, b) => a.localeCompare(b))
+				.map((cmd) => `│ ✧ 𝗵𝗲𝗹𝗽 → ${cmd}`)
+				.join("\n");
+		};
+
+		// ==========================
+		// رأس القائمة
+		// ==========================
 
 		let msg =
-			`━━━☠️ 𝗡𝗲𝗼𝗞𝗘𝗫 𝗔𝗜 ☠️━━━\n`;
+			`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
+			`      𓆩 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 𓆪\n` +
+			`       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 ✦\n` +
+			`╰━━━━━━━━━━━━━━━━━━━━━━╯\n`;
 
-		for (const cat of Object.keys(categories).sort()) {
-			msg += `\n╭──『 ${cat.toUpperCase()} 』\n`;
-			msg += `${formatCommands(categories[cat]).join(" ")}\n`;
-			msg += `╰────────────◊\n`;
+		// ==========================
+		// جميع Categories
+		// ==========================
+
+		const sortedCategories =
+			Object.keys(categories).sort();
+
+		for (const cat of sortedCategories) {
+			const emoji =
+				categoryEmoji[cat] || "📦";
+
+			msg +=
+				`\n` +
+				`╭───────「 ${emoji} 𝗙𝗨𝗡 」───────╮\n`;
+
+			// اسم Category مزخرف
+			const categoryTitle = cat.toUpperCase();
+
+			msg = msg.slice(
+				0,
+				msg.lastIndexOf(
+					`「 ${emoji} 𝗙𝗨𝗡 」`
+				)
+			);
+
+			msg +=
+				`「 ${emoji} 𝗙𝗨𝗡 」\n`;
+
+			msg +=
+				`╰──────────────────────────╯\n`;
+
+			// الأوامر
+			msg +=
+				formatCommands(categories[cat]) +
+				`\n`;
 		}
 
+		// ==========================
+		// إعادة بناء القائمة بشكل مرتب
+		// ==========================
+
+		msg =
+			`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
+			`      𓆩 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 𓆪\n` +
+			`       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 ✦\n` +
+			`╰━━━━━━━━━━━━━━━━━━━━━━╯\n`;
+
+		for (const cat of sortedCategories) {
+			const emoji =
+				categoryEmoji[cat] || "📦";
+
+			const categoryTitle =
+				cat
+					.toUpperCase()
+					.replace(/AI-IMAGE/g, "AI IMAGE");
+
+			const commands =
+				categories[cat]
+					.sort((a, b) =>
+						a.localeCompare(b)
+					)
+					.map(
+						(cmd) =>
+							`│ ✧ 𝗵𝗲𝗹𝗽 → ${cmd}`
+					)
+					.join("\n");
+
+			msg +=
+				`\n` +
+				`╭────「 ${emoji} 𝗙𝗨𝗡 」────╮\n` +
+				`${commands}\n` +
+				`╰────────────────────────╯\n`;
+		}
+
+		// ==========================
+		// أسفل القائمة
+		// ==========================
+
 		msg +=
-			`\n➥ Use: ${prefix}help [command name] for details\n` +
-			`➥ Use: ${prefix}callad to talk with bot admins '_'`;
+			`\n` +
+			`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
+			`        ♡ 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 ♡\n` +
+			`     𝗬𝗼𝘂𝗿 𝗛𝗲𝗹𝗽 𝗖𝗲𝗻𝘁𝗲𝗿\n` +
+			`╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+
+			`➥ 𝗨𝘀𝗲 : ${prefix}help [command]\n` +
+			`   └─ ✦ Command details\n\n` +
+
+			`➥ 𝗨𝘀𝗲 : ${prefix}callad\n` +
+			`   └─ ✦ Contact bot admins`;
 
 		// ==========================
 		// الفيديوهات
 		// ==========================
 
 		const videoUrls = [
-			"https://files.catbox.moe/b0jzu3.mp4",
-			"https://files.catbox.moe/h5w58m.mp4"
+			"https://files.catbox.moe/gcmoc8.mp4",
+			"https://files.catbox.moe/d3fajd.mp4"
 		];
 
-		// اختيار فيديو واحد عشوائياً
 		const videoUrl =
 			videoUrls[
-				Math.floor(Math.random() * videoUrls.length)
+				Math.floor(
+					Math.random() * videoUrls.length
+				)
 			];
 
 		try {
 			const video =
-				await global.utils.getStreamFromURL(videoUrl);
+				await global.utils.getStreamFromURL(
+					videoUrl
+				);
 
-			// إرسال فيديو واحد فقط
-			const sentMessage = await message.reply({
-				body:
-					"🎬 𝗡𝗲𝗼𝗞𝗘𝗫 𝗔𝗜\n\n" +
-					"↳ 𝗥𝗲𝗽𝗹𝘆 𝘁𝗼 𝘁𝗵𝗶𝘀 𝘃𝗶𝗱𝗲𝗼 𝗳𝗼𝗿 𝗺𝗲𝗻𝘂 📋",
-				attachment: video
-			});
+			// إرسال الفيديو
+			const sentMessage =
+				await message.reply({
+					body:
+						"🎬 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧\n\n" +
+						"↳ 𝗥𝗲𝗽𝗹𝘆 𝘁𝗼 𝘁𝗵𝗶𝘀 𝘃𝗶𝗱𝗲𝗼 𝗳𝗼𝗿 𝗺𝗲𝗻𝘂 📋",
+					attachment: video
+				});
 
-			// حفظ معلومات الرد
+			// حفظ القائمة
 			global.GoatBot.onReply.set(
 				sentMessage.messageID,
 				{
@@ -159,9 +308,16 @@ module.exports = {
 		}
 	},
 
-	onReply: async function ({ message, event, Reply }) {
+	// ==========================
+	// فتح القائمة بالـ Reply
+	// ==========================
 
-		// غير الشخص اللي دار help يقدر يفتح القائمة
+	onReply: async function ({
+		message,
+		event,
+		Reply
+	}) {
+		// غير صاحب help يقدر يفتح القائمة
 		if (
 			Reply.author &&
 			event.senderID !== Reply.author
@@ -169,6 +325,8 @@ module.exports = {
 			return;
 		}
 
-		return message.reply(Reply.body);
+		return message.reply(
+			Reply.body
+		);
 	}
 };
