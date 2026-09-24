@@ -1,28 +1,28 @@
 "use strict";
 
-const fs = require("fs-extra");
-const path = require("path");
-const { exec } = require("child_process");
-
 module.exports = {
 	config: {
 		name: "help",
 		aliases: ["menu", "commands"],
-		version: "5.0",
+		version: "4.8",
 		author: "NeoKEX",
-		shortDescription: "Show commands inside video",
-		longDescription: "Automatically adds the command menu to the help video.",
+		shortDescription: "Show all available commands",
+		longDescription: "Displays a clean and premium-styled categorized list of commands.",
 		category: "system",
 		guide: "{pn}help [command name]"
 	},
 
 	onStart: async function ({ message, args, prefix }) {
-
-		// رابط الفيديو الجديد
-		const videoUrl = "https://files.catbox.moe/b0jzu3.mp4";
-
 		const allCommands = global.GoatBot.commands;
 		const categories = {};
+
+		const emojiMap = {
+			ai: "➥", "ai-image": "➥", group: "➥", system: "➥",
+			fun: "➥", owner: "➥", config: "➥", economy: "➥",
+			media: "➥", "18+": "➥", tools: "➥", utility: "➥",
+			info: "➥", image: "➥", game: "➥", admin: "➥",
+			rank: "➥", boxchat: "➥", others: "➥"
+		};
 
 		const cleanCategoryName = (text) => {
 			if (!text) return "others";
@@ -35,7 +35,6 @@ module.exports = {
 				.toLowerCase();
 		};
 
-		// جمع الأوامر حسب التصنيف
 		for (const [name, cmd] of allCommands) {
 			const cat = cleanCategoryName(cmd.config.category);
 
@@ -45,117 +44,116 @@ module.exports = {
 			categories[cat].push(cmd.config.name);
 		}
 
-		// إنشاء نص الأوامر
-		let menuText = "NEOKEX AI\\n\\n";
+		// معلومات أمر معين
+		if (args[0]) {
+			const query = args[0].toLowerCase();
+
+			const cmd =
+				allCommands.get(query) ||
+				[...allCommands.values()].find((c) =>
+					(c.config.aliases || []).includes(query)
+				);
+
+			if (!cmd)
+				return message.reply(
+					`❌ Command "${query}" not found.`
+				);
+
+			const {
+				name,
+				version,
+				author,
+				guide,
+				category,
+				shortDescription,
+				longDescription,
+				aliases
+			} = cmd.config;
+
+			const desc =
+				typeof longDescription === "string"
+					? longDescription
+					: longDescription?.en ||
+					  shortDescription?.en ||
+					  shortDescription ||
+					  "No description";
+
+			const usage =
+				typeof guide === "string"
+					? guide.replace(/{pn}/g, prefix)
+					: guide?.en?.replace(/{pn}/g, prefix) ||
+					  `${prefix}${name}`;
+
+			const requiredRole =
+				cmd.config.role !== undefined
+					? cmd.config.role
+					: 0;
+
+			return message.reply(
+				`☠️ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ☠️\n\n` +
+				`➥ Name: ${name}\n` +
+				`➥ Category: ${category || "Uncategorized"}\n` +
+				`➥ Description: ${desc}\n` +
+				`➥ Aliases: ${aliases?.length ? aliases.join(", ") : "None"}\n` +
+				`➥ Usage: ${usage}\n` +
+				`➥ Permission: ${requiredRole}\n` +
+				`➥ Author: ${author}\n` +
+				`➥ Version: ${version}`
+			);
+		}
+
+		// ترتيب الأوامر
+		const formatCommands = (cmds) =>
+			cmds.sort().map((cmd) => `× ${cmd}`);
+
+		let msg =
+			`━━━☠️ 𝗡𝗲𝗼𝗞𝗘𝗫 𝗔𝗜 ☠️━━━\n`;
 
 		const sortedCategories =
 			Object.keys(categories).sort();
 
 		for (const cat of sortedCategories) {
 
-			menuText +=
-				"[" + cat.toUpperCase() + "]\\n";
+			const emoji = emojiMap[cat] || "➥";
 
-			for (const command of categories[cat].sort()) {
-				menuText += "× " + command + "\\n";
-			}
+			msg +=
+				`\n╭──『 ${cat.toUpperCase()} 』\n`;
 
-			menuText += "\\n";
+			msg +=
+				`${formatCommands(categories[cat]).join(" ")}\n`;
+
+			msg +=
+				`╰────────────◊\n`;
 		}
 
-		menuText +=
-			"Use " + prefix + "help command for details";
+		msg +=
+			`\n➥ Use: ${prefix}help [command name] for details\n` +
+			`➥ Use: ${prefix}callad to talk with bot admins '_'`;
 
-		const cacheDir = path.join(__dirname, "cache");
+		// ==========================
+		// إرسال الفيديو الجديد
+		// ==========================
 
-		await fs.ensureDir(cacheDir);
-
-		const inputVideo =
-			path.join(cacheDir, `help_${Date.now()}.mp4`);
-
-		const outputVideo =
-			path.join(cacheDir, `help_result_${Date.now()}.mp4`);
+		const videoUrl =
+			"https://files.catbox.moe/b0jzu3.mp4";
 
 		try {
-
-			// تحميل الفيديو
-			const response = await fetch(videoUrl);
-
-			if (!response.ok)
-				throw new Error("Failed to download video");
-
-			const buffer =
-				Buffer.from(await response.arrayBuffer());
-
-			await fs.writeFile(inputVideo, buffer);
-
-			// تجهيز النص لـ FFmpeg
-			const escapedText = menuText
-				.replace(/\\/g, "\\\\")
-				.replace(/:/g, "\\:")
-				.replace(/'/g, "\\'")
-				.replace(/%/g, "\\%");
-
-			const filter =
-				`drawtext=` +
-				`fontcolor=white:` +
-				`fontsize=28:` +
-				`x=40:` +
-				`y=40:` +
-				`line_spacing=8:` +
-				`box=1:` +
-				`boxcolor=black@0.65:` +
-				`boxborderw=20:` +
-				`text='${escapedText}'`;
-
-			const command =
-				`ffmpeg -y ` +
-				`-i "${inputVideo}" ` +
-				`-vf "${filter}" ` +
-				`-c:v libx264 ` +
-				`-preset veryfast ` +
-				`-crf 28 ` +
-				`-c:a copy ` +
-				`"${outputVideo}"`;
-
-			// معالجة الفيديو
-			await new Promise((resolve, reject) => {
-
-				exec(command, (error, stdout, stderr) => {
-
-					if (error) {
-						console.error("FFmpeg Error:", stderr);
-						return reject(error);
-					}
-
-					resolve();
-				});
-
-			});
+			const video =
+				await global.utils.getStreamFromURL(videoUrl);
 
 			// إرسال الفيديو
-			return message.reply({
-				body: "🎬 𝗡𝗘𝗢𝗞𝗘𝗫 𝗔𝗜\n📋 Commands Menu",
-				attachment: fs.createReadStream(outputVideo)
+			await message.reply({
+				attachment: video
 			});
 
-		} catch (error) {
+			// إرسال قائمة الأوامر
+			return message.reply(msg);
 
+		} catch (error) {
 			console.error(error);
 
-			return message.reply(
-				"❌ وقع مشكل أثناء تجهيز الفيديو.\n" +
-				"تأكد أن FFmpeg خدام مزيان."
-			);
-
-		} finally {
-
-			setTimeout(async () => {
-
-				await fs.remove(inputVideo).catch(() => {});
-				await fs.remove(outputVideo).catch(() => {});
-
-			}, 30000);
+			// إذا فشل الفيديو، يرسل القائمة عادي
+			return message.reply(msg);
 		}
 	}
 };
