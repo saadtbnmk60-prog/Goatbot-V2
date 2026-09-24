@@ -4,7 +4,7 @@ module.exports = {
 	config: {
 		name: "help",
 		aliases: ["menu", "commands"],
-		version: "5.1",
+		version: "5.2",
 		author: "NeoKEX",
 		shortDescription: "Show commands",
 		longDescription: "Send a random help video and show commands when replied.",
@@ -113,12 +113,12 @@ module.exports = {
 			`➥ Use: ${prefix}callad to talk with bot admins '_'`;
 
 		// ==========================
-		// الفيديوهات
+		// الفيديوهات الجديدة
 		// ==========================
 
 		const videoUrls = [
-			"https://files.catbox.moe/b0jzu3.mp4",
-			"https://files.catbox.moe/h5w58m.mp4"
+			"https://files.catbox.moe/gcmoc8.mp4",
+			"https://files.catbox.moe/d3fajd.mp4"
 		];
 
 		// اختيار فيديو واحد عشوائياً
