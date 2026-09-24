@@ -4,10 +4,10 @@ module.exports = {
 	config: {
 		name: "help",
 		aliases: ["menu", "commands"],
-		version: "4.8",
+		version: "5.1",
 		author: "NeoKEX",
-		shortDescription: "Show all available commands",
-		longDescription: "Displays a clean and premium-styled categorized list of commands.",
+		shortDescription: "Show commands",
+		longDescription: "Send a random help video and show commands when replied.",
 		category: "system",
 		guide: "{pn}help [command name]"
 	},
@@ -15,14 +15,6 @@ module.exports = {
 	onStart: async function ({ message, args, prefix }) {
 		const allCommands = global.GoatBot.commands;
 		const categories = {};
-
-		const emojiMap = {
-			ai: "➥", "ai-image": "➥", group: "➥", system: "➥",
-			fun: "➥", owner: "➥", config: "➥", economy: "➥",
-			media: "➥", "18+": "➥", tools: "➥", utility: "➥",
-			info: "➥", image: "➥", game: "➥", admin: "➥",
-			rank: "➥", boxchat: "➥", others: "➥"
-		};
 
 		const cleanCategoryName = (text) => {
 			if (!text) return "others";
@@ -35,6 +27,7 @@ module.exports = {
 				.toLowerCase();
 		};
 
+		// جمع الأوامر حسب التصنيف
 		for (const [name, cmd] of allCommands) {
 			const cat = cleanCategoryName(cmd.config.category);
 
@@ -102,28 +95,17 @@ module.exports = {
 			);
 		}
 
-		// ترتيب الأوامر
+		// إنشاء قائمة الأوامر
 		const formatCommands = (cmds) =>
 			cmds.sort().map((cmd) => `× ${cmd}`);
 
 		let msg =
 			`━━━☠️ 𝗡𝗲𝗼𝗞𝗘𝗫 𝗔𝗜 ☠️━━━\n`;
 
-		const sortedCategories =
-			Object.keys(categories).sort();
-
-		for (const cat of sortedCategories) {
-
-			const emoji = emojiMap[cat] || "➥";
-
-			msg +=
-				`\n╭──『 ${cat.toUpperCase()} 』\n`;
-
-			msg +=
-				`${formatCommands(categories[cat]).join(" ")}\n`;
-
-			msg +=
-				`╰────────────◊\n`;
+		for (const cat of Object.keys(categories).sort()) {
+			msg += `\n╭──『 ${cat.toUpperCase()} 』\n`;
+			msg += `${formatCommands(categories[cat]).join(" ")}\n`;
+			msg += `╰────────────◊\n`;
 		}
 
 		msg +=
@@ -131,29 +113,62 @@ module.exports = {
 			`➥ Use: ${prefix}callad to talk with bot admins '_'`;
 
 		// ==========================
-		// إرسال الفيديو الجديد
+		// الفيديوهات
 		// ==========================
 
+		const videoUrls = [
+			"https://files.catbox.moe/b0jzu3.mp4",
+			"https://files.catbox.moe/h5w58m.mp4"
+		];
+
+		// اختيار فيديو واحد عشوائياً
 		const videoUrl =
-			"https://files.catbox.moe/b0jzu3.mp4";
+			videoUrls[
+				Math.floor(Math.random() * videoUrls.length)
+			];
 
 		try {
 			const video =
 				await global.utils.getStreamFromURL(videoUrl);
 
-			// إرسال الفيديو
-			await message.reply({
+			// إرسال فيديو واحد فقط
+			const sentMessage = await message.reply({
+				body:
+					"🎬 𝗡𝗲𝗼𝗞𝗘𝗫 𝗔𝗜\n\n" +
+					"↳ 𝗥𝗲𝗽𝗹𝘆 𝘁𝗼 𝘁𝗵𝗶𝘀 𝘃𝗶𝗱𝗲𝗼 𝗳𝗼𝗿 𝗺𝗲𝗻𝘂 📋",
 				attachment: video
 			});
 
-			// إرسال قائمة الأوامر
-			return message.reply(msg);
+			// حفظ معلومات الرد
+			global.GoatBot.onReply.set(
+				sentMessage.messageID,
+				{
+					commandName: "help",
+					messageID: sentMessage.messageID,
+					author: message.senderID,
+					body: msg
+				}
+			);
 
 		} catch (error) {
 			console.error(error);
 
-			// إذا فشل الفيديو، يرسل القائمة عادي
-			return message.reply(msg);
+			return message.reply(
+				"❌ وقع مشكل وأنا كنرسل الفيديو."
+			);
 		}
+	},
+
+	onReply: async function ({ message, event, Reply }) {
+
+		// غير الشخص اللي دار help يقدر يفتح القائمة
+		if (
+			Reply.author &&
+			event.senderID !== Reply.author
+		) {
+			return;
+		}
+
+		return message.reply(Reply.body);
 	}
 };
