@@ -4,7 +4,7 @@ module.exports = {
 	config: {
 		name: "help",
 		aliases: ["menu", "commands"],
-		version: "5.4",
+		version: "5.3",
 		author: "NeoKEX",
 		shortDescription: "Show commands",
 		longDescription: "Send a random help video and show commands when replied.",
@@ -15,10 +15,6 @@ module.exports = {
 	onStart: async function ({ message, args, prefix }) {
 		const allCommands = global.GoatBot.commands;
 		const categories = {};
-
-		// ==========================
-		// تنظيف أسماء التصنيفات
-		// ==========================
 
 		const cleanCategoryName = (text) => {
 			if (!text) return "others";
@@ -38,9 +34,8 @@ module.exports = {
 		for (const [name, cmd] of allCommands) {
 			const cat = cleanCategoryName(cmd.config.category);
 
-			if (!categories[cat]) {
+			if (!categories[cat])
 				categories[cat] = [];
-			}
 
 			categories[cat].push(cmd.config.name);
 		}
@@ -55,16 +50,13 @@ module.exports = {
 			const cmd =
 				allCommands.get(query) ||
 				[...allCommands.values()].find((c) =>
-					(c.config.aliases || []).some(
-						(alias) => alias.toLowerCase() === query
-					)
+					(c.config.aliases || []).includes(query)
 				);
 
-			if (!cmd) {
+			if (!cmd)
 				return message.reply(
 					`❌ Command "${query}" not found.`
 				);
-			}
 
 			const {
 				name,
@@ -97,30 +89,23 @@ module.exports = {
 					: 0;
 
 			return message.reply(
-				`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
-				`      𓆩 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 𓆪\n` +
-				`       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ✦\n` +
-				`╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
+				`╔══════════════════════╗\n` +
+				`      ☠️ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 ☠️\n` +
+				`╚══════════════════════╝\n\n` +
 
-				`✦ 𝗡𝗮𝗺𝗲 : ${name}\n` +
-				`✦ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆 : ${category || "Uncategorized"}\n` +
-				`✦ 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻 : ${desc}\n` +
-				`✦ 𝗔𝗹𝗶𝗮𝘀𝗲𝘀 : ${
-					aliases?.length
-						? aliases.join(", ")
-						: "None"
-				}\n` +
-				`✦ 𝗨𝘀𝗮𝗴𝗲 : ${usage}\n` +
-				`✦ 𝗣𝗲𝗿𝗺𝗶𝘀𝘀𝗶𝗼𝗻 : ${requiredRole}\n` +
-				`✦ 𝗔𝘂𝘁𝗵𝗼𝗿 : ${author}\n` +
-				`✦ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻 : ${version}\n\n` +
-
-				`╰━━━━━━━━━━━━━━━━━━━━━━╯`
+				`◈ 𝗡𝗮𝗺𝗲 : ${name}\n` +
+				`◈ 𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆 : ${category || "Uncategorized"}\n` +
+				`◈ 𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻 : ${desc}\n` +
+				`◈ 𝗔𝗹𝗶𝗮𝘀𝗲𝘀 : ${aliases?.length ? aliases.join(", ") : "None"}\n` +
+				`◈ 𝗨𝘀𝗮𝗴𝗲 : ${usage}\n` +
+				`◈ 𝗣𝗲𝗿𝗺𝗶𝘀𝘀𝗶𝗼𝗻 : ${requiredRole}\n` +
+				`◈ 𝗔𝘂𝘁𝗵𝗼𝗿 : ${author}\n` +
+				`◈ 𝗩𝗲𝗿𝘀𝗶𝗼𝗻 : ${version}`
 			);
 		}
 
 		// ==========================
-		// إيموجي كل Category
+		// إيموجيات التصنيفات
 		// ==========================
 
 		const categoryEmoji = {
@@ -151,111 +136,48 @@ module.exports = {
 
 		const formatCommands = (cmds) => {
 			return cmds
-				.sort((a, b) => a.localeCompare(b))
-				.map((cmd) => `│ ✧ 𝗵𝗲𝗹𝗽 → ${cmd}`)
+				.sort()
+				.map((cmd) => `┃ ✦ ${cmd}`)
 				.join("\n");
 		};
 
 		// ==========================
-		// رأس القائمة
+		// إنشاء القائمة المزينة
 		// ==========================
 
 		let msg =
-			`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
-			`      𓆩 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 𓆪\n` +
-			`       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 ✦\n` +
-			`╰━━━━━━━━━━━━━━━━━━━━━━╯\n`;
-
-		// ==========================
-		// جميع Categories
-		// ==========================
+			`╔════════════════════════════╗\n` +
+			`      ☠️ 𝗡𝗘𝗢𝗞𝗘𝗫 𝗔𝗜 ☠️\n` +
+			`   ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗠𝗘𝗡𝗨 ✦\n` +
+			`╚════════════════════════════╝\n`;
 
 		const sortedCategories =
 			Object.keys(categories).sort();
 
 		for (const cat of sortedCategories) {
+
 			const emoji =
 				categoryEmoji[cat] || "📦";
 
 			msg +=
 				`\n` +
-				`╭───────「 ${emoji} 𝗙𝗨𝗡 」───────╮\n`;
-
-			// اسم Category مزخرف
-			const categoryTitle = cat.toUpperCase();
-
-			msg = msg.slice(
-				0,
-				msg.lastIndexOf(
-					`「 ${emoji} 𝗙𝗨𝗡 」`
-				)
-			);
-
-			msg +=
-				`「 ${emoji} 𝗙𝗨𝗡 」\n`;
-
-			msg +=
-				`╰──────────────────────────╯\n`;
-
-			// الأوامر
-			msg +=
-				formatCommands(categories[cat]) +
-				`\n`;
+				`╭━━━『 ${emoji} ${cat.toUpperCase()} 』━━━╮\n` +
+				`${formatCommands(categories[cat])}\n` +
+				`╰━━━━━━━━━━━━━━━━━━━━╯\n`;
 		}
-
-		// ==========================
-		// إعادة بناء القائمة بشكل مرتب
-		// ==========================
-
-		msg =
-			`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
-			`      𓆩 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 𓆪\n` +
-			`       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗𝗦 ✦\n` +
-			`╰━━━━━━━━━━━━━━━━━━━━━━╯\n`;
-
-		for (const cat of sortedCategories) {
-			const emoji =
-				categoryEmoji[cat] || "📦";
-
-			const categoryTitle =
-				cat
-					.toUpperCase()
-					.replace(/AI-IMAGE/g, "AI IMAGE");
-
-			const commands =
-				categories[cat]
-					.sort((a, b) =>
-						a.localeCompare(b)
-					)
-					.map(
-						(cmd) =>
-							`│ ✧ 𝗵𝗲𝗹𝗽 → ${cmd}`
-					)
-					.join("\n");
-
-			msg +=
-				`\n` +
-				`╭────「 ${emoji} 𝗙𝗨𝗡 」────╮\n` +
-				`${commands}\n` +
-				`╰────────────────────────╯\n`;
-		}
-
-		// ==========================
-		// أسفل القائمة
-		// ==========================
 
 		msg +=
 			`\n` +
-			`╭━━━━━━━━━━━━━━━━━━━━━━╮\n` +
-			`        ♡ 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧 ♡\n` +
-			`     𝗬𝗼𝘂𝗿 𝗛𝗲𝗹𝗽 𝗖𝗲𝗻𝘁𝗲𝗿\n` +
-			`╰━━━━━━━━━━━━━━━━━━━━━━╯\n\n` +
-
-			`➥ 𝗨𝘀𝗲 : ${prefix}help [command]\n` +
-			`   └─ ✦ Command details\n\n` +
-
-			`➥ 𝗨𝘀𝗲 : ${prefix}callad\n` +
-			`   └─ ✦ Contact bot admins`;
+			`╔════════════════════════════╗\n` +
+			`          📌 𝗛𝗘𝗟𝗣 𝗜𝗡𝗙𝗢\n` +
+			`╚════════════════════════════╝\n\n` +
+			`➥ 📖 ${prefix}help [command]\n` +
+			`   └─ تفاصيل أي أمر\n\n` +
+			`➥ 📞 ${prefix}callad\n` +
+			`   └─ التواصل مع بوت الأدمن\n\n` +
+			`╭────────────────────────────╮\n` +
+			`      ☠️ 𝗡𝗲𝗼𝗞𝗘𝗫 𝗔𝗜 ☠️\n` +
+			`╰────────────────────────────╯`;
 
 		// ==========================
 		// الفيديوهات
@@ -268,27 +190,23 @@ module.exports = {
 
 		const videoUrl =
 			videoUrls[
-				Math.floor(
-					Math.random() * videoUrls.length
-				)
+				Math.floor(Math.random() * videoUrls.length)
 			];
 
 		try {
+
 			const video =
-				await global.utils.getStreamFromURL(
-					videoUrl
-				);
+				await global.utils.getStreamFromURL(videoUrl);
 
 			// إرسال الفيديو
-			const sentMessage =
-				await message.reply({
-					body:
-						"🎬 𝗦𝗛𝗧𝗢𝗧 𝗕𝗢𝗧\n\n" +
-						"↳ 𝗥𝗲𝗽𝗹𝘆 𝘁𝗼 𝘁𝗵𝗶𝘀 𝘃𝗶𝗱𝗲𝗼 𝗳𝗼𝗿 𝗺𝗲𝗻𝘂 📋",
-					attachment: video
-				});
+			const sentMessage = await message.reply({
+				body:
+					"🎬 𝗡𝗲𝗼𝗞𝗘𝗫 𝗔𝗜\n\n" +
+					"↳ 𝗥𝗲𝗽𝗹𝘆 𝘁𝗼 𝘁𝗵𝗶𝘀 𝘃𝗶𝗱𝗲𝗼 𝗳𝗼𝗿 𝗺𝗲𝗻𝘂 📋",
+				attachment: video
+			});
 
-			// حفظ القائمة
+			// حفظ القائمة للرد
 			global.GoatBot.onReply.set(
 				sentMessage.messageID,
 				{
@@ -300,6 +218,7 @@ module.exports = {
 			);
 
 		} catch (error) {
+
 			console.error(error);
 
 			return message.reply(
@@ -308,16 +227,9 @@ module.exports = {
 		}
 	},
 
-	// ==========================
-	// فتح القائمة بالـ Reply
-	// ==========================
+	onReply: async function ({ message, event, Reply }) {
 
-	onReply: async function ({
-		message,
-		event,
-		Reply
-	}) {
-		// غير صاحب help يقدر يفتح القائمة
+		// فقط صاحب الأمر يقدر يفتح القائمة
 		if (
 			Reply.author &&
 			event.senderID !== Reply.author
@@ -325,8 +237,6 @@ module.exports = {
 			return;
 		}
 
-		return message.reply(
-			Reply.body
-		);
+		return message.reply(Reply.body);
 	}
 };
